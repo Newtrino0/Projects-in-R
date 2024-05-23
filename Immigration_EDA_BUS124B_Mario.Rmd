@@ -1,0 +1,69 @@
+---
+title: "Immigration_EDA"
+author: "Mario Arce Acosta"
+date: "2024-05-08"
+output: html_document
+---
+
+```{r Setup and upload data}
+library(readxl)
+library(ggplot2)
+
+fearData<- read_excel("C:/Users/mario/Desktop/Datasets/Migration_Fear_EPU_Data.xlsx", sheet = "Sheet1")
+View(fearData)
+
+lprData <- read_excel("C:/Users/mario/Desktop/Datasets/LPR_FY1820-2022_data.xlsx",sheet = "LPR (1990-2022)")
+View(lprData)
+
+removalsData <- read_excel("C:/Users/mario/Desktop/Datasets/Alien_removal_returns_fy2019_data.xlsx", sheet = "(R) Aliens removed or returned")
+View(removalsData)
+```
+
+```{r Clean and Prepare}
+#Prepare lprData by renaming columns, subsetting, and changing data type
+colnames(lprData)[2] <- "Persons_obtaining_LPR"
+lprData <- lprData[171:200,]
+lprData$Year <- as.numeric(lprData$Year)
+
+#Prepare crimeData by subsetting and changing data type
+removalsData <-removalsData[99:128,]
+removalsData$Year <- as.numeric(removalsData$Year)
+
+#Prepare fearData by subsetting, aggregating, and renaming columns
+fearData <- fearData[c(1,7,8)]
+fearData<-aggregate(fearData,by=list(fearData$year), FUN= mean)
+fearData<-fearData[2:4]
+fearData<-fearData[1:30,]
+colnames(fearData)[1] <- "Year"
+
+#Merge into a single dataframe with all column headers
+immigrationData <- merge(removalsData,lprData)
+immigrationData <- merge(immigrationData, fearData)
+View(immigrationData)
+```
+
+```{r EDA}
+#Plots by data sources for now
+ggplot(fearData, aes(Year, usa_fear_index)) + 
+  geom_point()
+ggplot(lprData, aes(Year, Persons_obtaining_LPR)) + 
+  geom_point()
+ggplot(removalsData, aes(Year, Removals1)) + 
+  geom_point()
+
+model1<- lm(Removals1 ~ usa_fear_index + I(usa_fear_index^2), immigrationData)
+model2<- lm(usa_epu_migrant_index ~ usa_fear_index, immigrationData)
+model3<- lm(Persons_obtaining_LPR~usa_fear_index, immigrationData)
+summary(model1)
+summary(model2)
+summary(model3)
+
+```
+
+## R Markdown
+
+This is an R Markdown document. Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word documents. For more details on using R Markdown see <http://rmarkdown.rstudio.com>.
+
+When you click the **Knit** button a document will be generated that includes both content as well as the output of any embedded R code chunks within the document. You can embed an R code chunk like this:
+
+Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
