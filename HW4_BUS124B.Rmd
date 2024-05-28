@@ -1,0 +1,70 @@
+---
+title: "HW #4 BUS124B"
+output: html_notebook
+---
+
+This is an [R Markdown](http://rmarkdown.rstudio.com) Notebook. When you execute code within the notebook, the results appear beneath the code. 
+
+Try executing this chunk by clicking the *Run* button within the chunk or by placing your cursor inside it and pressing *Ctrl+Shift+Enter*. 
+
+```{r Q1}
+library(readxl)
+library(forecast)
+vacData <- read_excel("C:/Users/mario/Downloads/Ch10_Q17_V11_Data_File.xlsx", sheet = "Vacation")
+View(vacData)
+
+newData<-ts(vacData$Vacation, start=c(2008,1),end=c(2019,1),frequency=4)
+View(newData)
+plot.ts(newData)
+
+tsModel1<-tslm(newData~season)
+summary(tsModel1)
+tsModel2<-tslm(newData~trend+season)
+summary(tsModel2)
+
+forecast(tsModel1)
+
+```
+
+```{r Q2}
+library(readxl)
+library(forecast)
+myData <-read_excel("C:/Users/mario/Downloads/Ch10_Q3_V13_Data_File.xlsx", sheet = "Convenience_Store")
+View(myData)
+
+newData<-ts(myData$Sales, start=1,frequency=1)
+plot.ts(newData)
+
+
+# Y31 moving average is equal to Y33 fitted (need Y32,Y31,Y30)
+y31out<-sum(myData$Sales[28:30])/3
+y33out<-y31out
+y31Ave<-y33out
+y31Ave
+
+#SES, alpha 0.3, 31st week (Y31 is equal to L30)
+y30out<-sum(myData$Sales[27:29])/3
+L30<-0.3*myData$Sales[30]+0.7*y30out
+L30
+
+#One method
+forecast0.3Fit <-ses(myData$Sales, alpha = 0.3)$fitted
+forecast0.3Fit
+L30<-0.3*myData$Sales[30]+0.7*forecast0.3Fit[30]
+L30
+
+#Another method
+ses(myData$Sales, alpha = 0.3)$mean
+
+length(myData$Sales)
+length(forecast0.3Fit)
+MSE2<-mean(sum((myData$Sales-forecast0.3Fit)^2))/29
+MSE2
+MAD2<-sum(abs(myData$Sales-forecast0.3Fit))/29
+```
+
+Add a new chunk by clicking the *Insert Chunk* button on the toolbar or by pressing *Ctrl+Alt+I*.
+
+When you save the notebook, an HTML file containing the code and output will be saved alongside it (click the *Preview* button or press *Ctrl+Shift+K* to preview the HTML file).
+
+The preview shows you a rendered HTML copy of the contents of the editor. Consequently, unlike *Knit*, *Preview* does not run any R code chunks. Instead, the output of the chunk when it was last run in the editor is displayed.
