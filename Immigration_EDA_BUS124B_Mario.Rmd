@@ -8,28 +8,47 @@ output: html_document
 ```{r Setup and upload data}
 library(readxl)
 library(ggplot2)
+library(forecast)
 
-H1B_data <- read_excel("C:/Users/mario/Documents/GitHub/Regular_R_Work/H1B_data.xlsx", sheet = "Sheet 1")
+#Path on XCITE laptop"C:\Users\XCITE-admin\Documents\GitHub\Regular_R_Work\H1B_data.xlsx"
+H1B_data <- read_excel("C:/Users/XCITE-admin/Documents/GitHub/Regular_R_Work/H1B_data.xlsx", sheet = "Sheet 1")
 View(H1B_data)
+LPR_data <- read_excel("C:/Users/XCITE-admin/Documents/GitHub/Regular_R_Work/LPR_1820-2022_data.xlsx", sheet = "LPR obtainments")
+View(LPR_data)
 
 fearData<- read_excel("C:/Users/mario/Desktop/Datasets/Migration_Fear_EPU_Data.xlsx", sheet = "Sheet1")
 View(fearData)
-
-lprData <- read_excel("C:/Users/mario/Desktop/Datasets/LPR_FY1820-2022_data.xlsx",sheet = "LPR (1990-2022)")
-View(lprData)
 
 removalsData <- read_excel("C:/Users/mario/Desktop/Datasets/Alien_removal_returns_fy2019_data.xlsx", sheet = "(R) Aliens removed or returned")
 View(removalsData)
 ```
 
 ```{r Clean and Prepare}
-#Prepare H1B_data
-H1B_data<-aggregate(H1B_Data,by=list(fearData$year), FUN= mean)
+##Work began at XCITE
 
-#Prepare lprData by renaming columns, subsetting, and changing data type
-colnames(lprData)[2] <- "Persons_obtaining_LPR"
-lprData <- lprData[171:200,]
-lprData$Year <- as.numeric(lprData$Year)
+#Prepare H1B_data
+colnames(H1B_data)[1]<-"Year"
+colnames(H1B_data)[8]<-"Inital_Approval"
+colnames(H1B_data)[9]<-"Inital_Denial"
+colnames(H1B_data)[10]<-"Continuing_Approval"
+colnames(H1B_data)[11]<-"Continuing_Denial"
+
+H1B_data<-subset(H1B_data, Year <= 2022)
+
+H1B_numbers<-H1B_data[c(1,8,9,10,11)]
+View(H1B_numbers)
+H1B_numbers<-aggregate(H1B_numbers[2:5],by=list(H1B_numbers$Year), FUN=sum)
+
+tsH1B<-ts(H1B_numbers$Continuing_Approval, start=2013,end=2022)
+View(tsH1B)
+plot.ts(tsH1B)
+
+#Prepare LPR_data by renaming columns, subsetting, and changing data type
+colnames(LPR_data)[2]<-"#_of_LPR_obtained"
+
+tsLPR<-ts(LPR_data$`#_of_LPR_obtained`,start=2013,end=2022)
+View(tsLPR)
+plot.ts(tsLPR)
 
 #Prepare crimeData by subsetting and changing data type
 removalsData <-removalsData[99:128,]
@@ -49,6 +68,11 @@ View(immigrationData)
 ```
 
 ```{r EDA}
+
+
+ggplot(H1B_data, aes(Year, Continuing_Approval)) + 
+  geom_point() + geom_line()
+
 #Plots by data sources for now
 ggplot(fearData, aes(Year, usa_fear_index)) + 
   geom_point() + geom_line()
