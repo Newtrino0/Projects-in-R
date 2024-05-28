@@ -2,7 +2,9 @@
 title: "Immigration_EDA"
 author: "Mario Arce Acosta"
 date: "2024-05-08"
-output: html_document
+output:
+  word_document: default
+  html_document: default
 ---
 
 ```{r Setup and upload data}
@@ -48,21 +50,18 @@ colnames(LPR_data)[2]<-"#_of_LPR_obtained"
 tsLPR<-ts(LPR_data$`#_of_LPR_obtained`,start=2013,end=2022, frequency=1)
 plot.ts(tsLPR)
 
-TData<-window[tsLPR, end=150]
-VData<-window[tsLPR,start=151]
-
 LPR_tsmodel1<-tslm(tsLPR~trend)
 summary(LPR_tsmodel1)
 
 LPR_tsmodel2<-tslm(log(tsLPR)~trend)
 summary(LPR_tsmodel2)
 
-forecast1<-forecast(LPR_tsmodel1, h=203)
-forecast2<-forecast(LPR_tsmodel2, h=203)
-View(forecast1)
-View(forecast2)
-
-exp(forecast2$mean+se^2/2)
+# forecast1<-forecast(LPR_tsmodel1, h=10)
+# forecast2<-forecast(LPR_tsmodel2, h=10)
+# View(forecast1)
+# View(forecast2)
+# 
+# exp(forecast2$mean+se^2/2)
 
 ses(LPR_data$`#_of_LPR_obtained`, alpha = 0.3)$fitted
 
@@ -76,23 +75,25 @@ removalsData <-removalsData[99:128,]
 removalsData$Year <- as.numeric(removalsData$Year)
 
 #Prepare fearData by subsetting, aggregating, and renaming columns
-fearData <- fearData[c(1,7,8)]
+fearData <- fearData[c(1,2,7,8)]
+tsFear<-ts(fearData$usa_fear_index, frequency=4)
+tsMigrant<-ts(fearData$usa_epu_migrant_index, frequency=4)
+
+plot.ts(tsFear)
+plot.ts(tsMigrant)
+
 fearData<-aggregate(fearData,by=list(fearData$year), FUN= mean)
 fearData<-fearData[2:4]
 fearData<-fearData[1:30,]
 colnames(fearData)[1] <- "Year"
 
 #Merge into a single dataframe with all column headers
-immigrationData <- merge(removalsData,lprData)
-immigrationData <- merge(immigrationData, fearData)
-View(immigrationData)
+# immigrationData <- merge(removalsData,lprData)
+# immigrationData <- merge(immigrationData, fearData)
+# View(immigrationData)
 ```
 
 ```{r EDA}
-
-
-ggplot(H1B_data, aes(Year, Continuing_Approval)) + 
-  geom_point() + geom_line()
 
 #Plots by data sources for now
 ggplot(fearData, aes(Year, usa_fear_index)) + 
@@ -102,12 +103,12 @@ ggplot(lprData, aes(Year, Persons_obtaining_LPR)) +
 ggplot(removalsData, aes(Year, Removals1)) + 
   geom_point() + geom_line()
 
-model1<- lm(Removals1 ~ usa_fear_index , immigrationData)
-model2<- lm(usa_epu_migrant_index ~ usa_fear_index, immigrationData)
-model3<- lm(Persons_obtaining_LPR~usa_fear_index, immigrationData)
-summary(model1)
+#model1<- lm(Removals1 ~ usa_fear_index , immigrationData)
+model2<- lm(usa_epu_migrant_index ~ usa_fear_index, fearData)
+#model3<- lm(Persons_obtaining_LPR~usa_fear_index, fearData)
+#summary(model1)
 summary(model2)
-summary(model3)
+#summary(model3)
 
 ```
 
