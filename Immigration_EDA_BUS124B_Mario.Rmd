@@ -11,9 +11,9 @@ library(ggplot2)
 library(forecast)
 
 #Path on XCITE laptop"C:\Users\XCITE-admin\Documents\GitHub\Regular_R_Work\H1B_data.xlsx"
-H1B_data <- read_excel("C:/Users/XCITE-admin/Documents/GitHub/Regular_R_Work/H1B_data.xlsx", sheet = "Sheet 1")
+H1B_data <- read_excel("C:/Users/mario/Documents/GitHub/Regular_R_Work/H1B_data.xlsx", sheet = "Sheet 1")
 View(H1B_data)
-LPR_data <- read_excel("C:/Users/XCITE-admin/Documents/GitHub/Regular_R_Work/LPR_1820-2022_data.xlsx", sheet = "LPR obtainments")
+LPR_data <- read_excel("C:/Users/mario/Documents/GitHub/Regular_R_Work/LPR_1820-2022_data.xlsx", sheet = "LPR obtainments")
 View(LPR_data)
 
 fearData<- read_excel("C:/Users/mario/Desktop/Datasets/Migration_Fear_EPU_Data.xlsx", sheet = "Sheet1")
@@ -40,15 +40,36 @@ View(H1B_numbers)
 H1B_numbers<-aggregate(H1B_numbers[2:5],by=list(H1B_numbers$Year), FUN=sum)
 
 tsH1B<-ts(H1B_numbers$Continuing_Approval, start=2013,end=2022)
-View(tsH1B)
 plot.ts(tsH1B)
 
 #Prepare LPR_data by renaming columns, subsetting, and changing data type
 colnames(LPR_data)[2]<-"#_of_LPR_obtained"
 
-tsLPR<-ts(LPR_data$`#_of_LPR_obtained`,start=2013,end=2022)
-View(tsLPR)
+tsLPR<-ts(LPR_data$`#_of_LPR_obtained`,start=2013,end=2022, frequency=1)
 plot.ts(tsLPR)
+
+TData<-window[tsLPR, end=150]
+VData<-window[tsLPR,start=151]
+
+LPR_tsmodel1<-tslm(tsLPR~trend)
+summary(LPR_tsmodel1)
+
+LPR_tsmodel2<-tslm(log(tsLPR)~trend)
+summary(LPR_tsmodel2)
+
+forecast1<-forecast(LPR_tsmodel1, h=203)
+forecast2<-forecast(LPR_tsmodel2, h=203)
+View(forecast1)
+View(forecast2)
+
+exp(forecast2$mean+se^2/2)
+
+ses(LPR_data$`#_of_LPR_obtained`, alpha = 0.3)$fitted
+
+fittedLPR1<-fitted(LPR_tsmodel1)
+accuracy(fitted(LPR_tsmodel1),LPR_data$`#_of_LPR_obtained`[1:10])
+se<-sigma(LPR_tsmodel2)
+accuracy(fitted(LPR_tsmodel2)+se^2,LPR_data$`#_of_LPR_obtained`[1:10])
 
 #Prepare crimeData by subsetting and changing data type
 removalsData <-removalsData[99:128,]
