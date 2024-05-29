@@ -4,6 +4,7 @@ author: "Mario Arce Acosta"
 date: "2024-05-08"
 output:
   word_document: default
+  pdf_document: default
   html_document: default
 ---
 
@@ -95,20 +96,20 @@ colnames(fearData)[1] <- "Year"
 
 ```{r EDA}
 
-#Plots by data sources for now
-ggplot(fearData, aes(Year, usa_fear_index)) + 
-  geom_point() + geom_line()
-ggplot(lprData, aes(Year, Persons_obtaining_LPR)) + 
-  geom_point() + geom_line()
-ggplot(removalsData, aes(Year, Removals1)) + 
-  geom_point() + geom_line()
-
-#model1<- lm(Removals1 ~ usa_fear_index , immigrationData)
-model2<- lm(usa_epu_migrant_index ~ usa_fear_index, fearData)
-#model3<- lm(Persons_obtaining_LPR~usa_fear_index, fearData)
-#summary(model1)
-summary(model2)
-#summary(model3)
+# #Plots by data sources for now
+# ggplot(fearData, aes(Year, usa_fear_index)) + 
+#   geom_point() + geom_line()
+# ggplot(lprData, aes(Year, Persons_obtaining_LPR)) + 
+#   geom_point() + geom_line()
+# ggplot(removalsData, aes(Year, Removals1)) + 
+#   geom_point() + geom_line()
+# 
+# #model1<- lm(Removals1 ~ usa_fear_index , immigrationData)
+#model2<- lm(usa_epu_migrant_index ~ usa_fear_index, fearData)
+# #model3<- lm(Persons_obtaining_LPR~usa_fear_index, fearData)
+# #summary(model1)
+#summary(model2)
+# #summary(model3)
 
 ```
 
