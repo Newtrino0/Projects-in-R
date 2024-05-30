@@ -1,0 +1,26 @@
+{
+    "id": "35A1B917",
+    "path": "~/GitHub/Regular_R_Work/Tutorial/app.R",
+    "project_path": "app.R",
+    "type": "r_source",
+    "hash": "0",
+    "contents": "",
+    "dirty": true,
+    "created": 1717029072404.0,
+    "source_on_save": false,
+    "relative_order": 1,
+    "properties": {
+        "source_window_id": "",
+        "Source": "Source",
+        "cursorPosition": "10,0",
+        "scrollLine": "0"
+    },
+    "folds": "",
+    "lastKnownWriteTime": 1717029042,
+    "encoding": "UTF-8",
+    "collab_server": "",
+    "source_window": "",
+    "last_content_update": 1717029200284,
+    "read_only": false,
+    "read_only_alternatives": []
+}
