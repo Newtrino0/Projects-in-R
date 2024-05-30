@@ -1,0 +1,5 @@
+[1,"=> shiny::runApp()\n\n"]
+[2,"Loading required package: shiny\r\n"]
+[2,"\r\nListening on http://127.0.0.1:3845\r\n"]
+[2,"Warning: Error in FUN: only defined on a data frame with all numeric-alike variables\r\n  173: stop\r\n  172: FUN\r\n  171: lapply\r\n  170: Summary.data.frame\r\n  168: renderPlot [C:\\Users\\XCITE-admin\\Documents\\GitHub\\Regular_R_Work\\Tutorial/app.R#44]\r\n  166: func\r\n  126: drawPlot\r\n  112: <reactive:plotObj>\r\n   96: drawReactive\r\n   83: renderFunc\r\n   82: output$distPlot\r\n    1: shiny::runApp\r\n"]
+[1,"\nShiny application successfully stopped.\n\n"]

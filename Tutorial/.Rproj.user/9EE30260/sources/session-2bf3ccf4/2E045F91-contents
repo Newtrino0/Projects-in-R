@@ -1,0 +1,122 @@
+---
+title: "Immigration_EDA"
+author: "Mario Arce Acosta"
+date: "2024-05-08"
+output:
+  word_document: default
+  pdf_document: default
+  html_document: default
+---
+
+```{r Setup and upload data}
+library(readxl)
+library(ggplot2)
+library(forecast)
+
+#Path on XCITE laptop"C:\Users\XCITE-admin\Documents\GitHub\Regular_R_Work\H1B_data.xlsx"
+H1B_data <- read_excel("C:/Users/mario/Documents/GitHub/Regular_R_Work/H1B_data.xlsx", sheet = "Sheet 1")
+View(H1B_data)
+LPR_data <- read_excel("C:/Users/mario/Documents/GitHub/Regular_R_Work/LPR_1820-2022_data.xlsx", sheet = "LPR obtainments")
+View(LPR_data)
+
+fearData<- read_excel("C:/Users/mario/Desktop/Datasets/Migration_Fear_EPU_Data.xlsx", sheet = "Sheet1")
+View(fearData)
+
+removalsData <- read_excel("C:/Users/mario/Desktop/Datasets/Alien_removal_returns_fy2019_data.xlsx", sheet = "(R) Aliens removed or returned")
+View(removalsData)
+```
+
+```{r Clean and Prepare}
+##Work began at XCITE
+
+#Prepare H1B_data
+colnames(H1B_data)[1]<-"Year"
+colnames(H1B_data)[8]<-"Inital_Approval"
+colnames(H1B_data)[9]<-"Inital_Denial"
+colnames(H1B_data)[10]<-"Continuing_Approval"
+colnames(H1B_data)[11]<-"Continuing_Denial"
+
+H1B_data<-subset(H1B_data, Year <= 2022)
+
+H1B_numbers<-H1B_data[c(1,8,9,10,11)]
+View(H1B_numbers)
+H1B_numbers<-aggregate(H1B_numbers[2:5],by=list(H1B_numbers$Year), FUN=sum)
+
+tsH1B<-ts(H1B_numbers$Continuing_Approval, start=2013,end=2022)
+plot.ts(tsH1B)
+
+#Prepare LPR_data by renaming columns, subsetting, and changing data type
+colnames(LPR_data)[2]<-"#_of_LPR_obtained"
+
+tsLPR<-ts(LPR_data$`#_of_LPR_obtained`,start=2013,end=2022, frequency=1)
+plot.ts(tsLPR)
+
+LPR_tsmodel1<-tslm(tsLPR~trend)
+summary(LPR_tsmodel1)
+
+LPR_tsmodel2<-tslm(log(tsLPR)~trend)
+summary(LPR_tsmodel2)
+
+# forecast1<-forecast(LPR_tsmodel1, h=10)
+# forecast2<-forecast(LPR_tsmodel2, h=10)
+# View(forecast1)
+# View(forecast2)
+# 
+# exp(forecast2$mean+se^2/2)
+
+ses(LPR_data$`#_of_LPR_obtained`, alpha = 0.3)$fitted
+
+fittedLPR1<-fitted(LPR_tsmodel1)
+accuracy(fitted(LPR_tsmodel1),LPR_data$`#_of_LPR_obtained`[1:10])
+se<-sigma(LPR_tsmodel2)
+accuracy(fitted(LPR_tsmodel2)+se^2,LPR_data$`#_of_LPR_obtained`[1:10])
+
+#Prepare crimeData by subsetting and changing data type
+removalsData <-removalsData[99:128,]
+removalsData$Year <- as.numeric(removalsData$Year)
+
+#Prepare fearData by subsetting, aggregating, and renaming columns
+fearData <- fearData[c(1,2,7,8)]
+tsFear<-ts(fearData$usa_fear_index, frequency=4)
+tsMigrant<-ts(fearData$usa_epu_migrant_index, frequency=4)
+
+plot.ts(tsFear)
+plot.ts(tsMigrant)
+
+fearData<-aggregate(fearData,by=list(fearData$year), FUN= mean)
+fearData<-fearData[2:4]
+fearData<-fearData[1:30,]
+colnames(fearData)[1] <- "Year"
+
+#Merge into a single dataframe with all column headers
+# immigrationData <- merge(removalsData,lprData)
+# immigrationData <- merge(immigrationData, fearData)
+# View(immigrationData)
+```
+
+```{r EDA}
+
+# #Plots by data sources for now
+# ggplot(fearData, aes(Year, usa_fear_index)) + 
+#   geom_point() + geom_line()
+# ggplot(lprData, aes(Year, Persons_obtaining_LPR)) + 
+#   geom_point() + geom_line()
+# ggplot(removalsData, aes(Year, Removals1)) + 
+#   geom_point() + geom_line()
+# 
+# #model1<- lm(Removals1 ~ usa_fear_index , immigrationData)
+#model2<- lm(usa_epu_migrant_index ~ usa_fear_index, fearData)
+# #model3<- lm(Persons_obtaining_LPR~usa_fear_index, fearData)
+# #summary(model1)
+#summary(model2)
+# #summary(model3)
+
+```
+
+## R Markdown
+
+This is an R Markdown document. Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word documents. For more details on using R Markdown see <http://rmarkdown.rstudio.com>.
+
+When you click the **Knit** button a document will be generated that includes both content as well as the output of any embedded R code chunks within the document. You can embed an R code chunk like this:
+
+Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
