@@ -20,15 +20,44 @@ myData<-mtcars
 View(myData)
 structure(myData)
 
-model<-lm(mpg~disp,myData)
-
+model1<-lm(mpg~disp,myData)
+summary(model1)
 #Plot with relationship
 plot(myData$disp,myData$mpg, xlab="disp",ylab="mpg")
-abline(model,col="red")
+abline(model1,col="red")
+##Plot with residuals and fitted values, with histogram, and Q-Q
+plot(model1)
+#Not nomrally distributed with histogram
+hist(model1$residuals, xlab="Residuals", main="Check normality with Histogram of residuals")
 
-#Plot with residuals and fitted values
-plot(model)
-hist(model)
+
+
+model2<-lm(mpg~log(disp),myData)
+summary(model2)
+#Plot and see visuals
+plot(myData$disp, myData$mpg, xlab="disp",ylab="mpg")
+y<-predict(model2,interval="prediction")
+x=seq(from=1,to=500,length.out=32)
+matlines(x,y,lwd=2)
+#Plot residuals vs fitted, and Q-Q
+plot(model2)
+#Not nomrally distributed with histogram, but better than 1st histogram
+hist(model2$residuals, xlab="Residuals", main="Check normality with Histogram of residuals")
+
+
+
+model3<-lm(log(mpg)~log(disp),myData)
+summary(model3)
+#Plot to see relationship
+plot(myData$disp, myData$mpg, xlab="disp",ylab="mpg")
+y<-predict(model3,interval="prediction")
+x=seq(from=1,to=500,length.out=32)
+matlines(x,y,lwd=2)
+#PLot residuals vs. fitted, and Q-Q
+plot(model3)
+#Much more normally distributed
+hist(model3$residuals, xlab="Residuals", main="Check normality with Histogram of residuals")
+
 
 ```
 
