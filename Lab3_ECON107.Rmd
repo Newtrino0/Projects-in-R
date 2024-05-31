@@ -2,7 +2,9 @@
 title: 'Lab #3'
 author: "Mario Arce Acosta"
 date: "2024-05-31"
-output: html_document
+output:
+  word_document: default
+  html_document: default
 ---
 
 ```{r setup, include=FALSE}
@@ -15,59 +17,63 @@ This is an R Markdown document. Markdown is a simple formatting syntax for autho
 
 When you click the **Knit** button a document will be generated that includes both content as well as the output of any embedded R code chunks within the document. You can embed an R code chunk like this:
 
-```{r Model 1}
+```{r Side-by-Side Comparison of summaries for models}
+library(stargazer)
+
+#Load and see structure of data
 myData<-mtcars
-View(myData)
 structure(myData)
 
-### Model 1 and all its residual plots
+##Build, summarize, and interpret models
+
+#Linear model
 model1<-lm(mpg~disp,myData)
-summary(model1)
+#Lin-Log model
+model2<-lm(mpg~log(disp),myData)
+#Log-Log model
+model3<-lm(log(mpg)~log(disp),myData)
+
+stargazer(model1, model2, model3,covariate.labels=c("disp"), type="text",  out="models1.text")
+
+#We see that coefficients are stat significant for each model but, Lin-Log performs better with a higher R^2 and F-stat (more sample variance explained) despite its distribution not being as "normal" as Model 3's
+```
+
+```{r Model 1}
 #Plot with relationship
 plot(myData$disp,myData$mpg, xlab="disp",ylab="mpg")
 abline(model1,col="red")
 #Plot with residuals and fitted values, with histogram, and Q-Q
 plot(model1)
-#Not nomrally distributed with histogram
 hist(model1$residuals, xlab="Residuals", main="Check normality with Histogram of residuals")
+
+#Not a normally distributed histogram, skewed to right
 ```
 
 ```{r Model 2}
-myData<-mtcars
-View(myData)
-structure(myData)
-
-### Model 2 and all its residual plots
-model2<-lm(mpg~log(disp),myData)
-summary(model2)
 #Plot and see visuals
-plot(myData$disp, myData$mpg, xlab="disp",ylab="mpg")
-y<-predict(model2,interval="prediction")
-x=seq(from=1,to=500,length.out=32)
-matlines(x,y,lwd=2)
+library(ggplot2)
+ggplot(myData, aes(log(myData$disp), myData$mpg)) + geom_point() + stat_smooth(method="lm",fill="gray")
+#ggplot(myData, aes(myData$disp, myData$mpg)) + geom_point() + stat_smooth(method="lm",formula=y~log(x),fill="gray")
+
 #Plot residuals vs fitted, and Q-Q
 plot(model2)
-#Not nomrally distributed with histogram, but better than 1st histogram
 hist(model2$residuals, xlab="Residuals", main="Check normality with Histogram of residuals")
+
+#Not nomrally distributed with histogram, but better than 1st model's histogram
 ```
 
-```{r Model 3}
-myData<-mtcars
-View(myData)
-structure(myData)
-
-### Model 3 and all its residual plots
-model3<-lm(log(mpg)~log(disp),myData)
-summary(model3)
+```{r Model 3 plots}
 #Plot to see relationship
-plot(myData$disp, myData$mpg, xlab="disp",ylab="mpg")
-y<-predict(model3,interval="prediction")
-x=seq(from=1,to=500,length.out=32)
-matlines(x,y,lwd=2)
-#PLot residuals vs. fitted, and Q-Q
+library(ggplot2)
+ggplot(myData, aes(log(myData$disp), log(myData$mpg))) + geom_point() + stat_smooth(method="lm",fill="gray")
+#Plot residuals vs. fitted, and Q-Q
 plot(model3)
 #Much more normally distributed
 hist(model3$residuals, xlab="Residuals", main="Check normality with Histogram of residuals")
+
+
 ```
+
+
 
 Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
