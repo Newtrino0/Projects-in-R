@@ -13,7 +13,7 @@ library(forecast)
 vacData <- read_excel("C:/Users/mario/Downloads/Ch10_Q17_V11_Data_File.xlsx", sheet = "Vacation")
 View(vacData)
 
-newData<-ts(vacData$Vacation, start=c(2008,1),end=c(2019,1),frequency=4)
+newData<-ts(vacData$Vacation, start=c(2008,1),end=c(2019,4),frequency=4)
 View(newData)
 plot.ts(newData)
 
@@ -28,39 +28,138 @@ forecast(tsModel1)
 
 ```{r Q2}
 library(readxl)
-library(forecast)
 myData <-read_excel("C:/Users/mario/Downloads/Ch10_Q3_V13_Data_File.xlsx", sheet = "Convenience_Store")
 View(myData)
 
-newData<-ts(myData$Sales, start=1,frequency=1)
-plot.ts(newData)
+yAve3<-c(NA,NA,NA)
+for (i in 1:27) {
+  yAve3[i+3]<-sum(myData$Sales[i:(i+2)])/3
+}
+yAve3
 
+e3<-myData$Sales-yAve3
+myData<-cbind(myData,yAve3,e3)
 
-# Y31 moving average is equal to Y33 fitted (need Y32,Y31,Y30)
-y31out<-sum(myData$Sales[28:30])/3
-y33out<-y31out
-y31Ave<-y33out
-y31Ave
+MSE3<-sum((myData$e3[4:30])^2)/27
+MAD3<-sum(abs(myData$e3[4:30]))/27
+MAPE3<-100*sum(abs((myData$e3[4:30])/myData$Sales[4:30]))/27
+
+print(MSE3,digits=8)
+MAD3
+MAPE3
 
 #SES, alpha 0.3, 31st week (Y31 is equal to L30)
-y30out<-sum(myData$Sales[27:29])/3
-L30<-0.3*myData$Sales[30]+0.7*y30out
-L30
+L<-c(myData$Sales[1])
+yfit<-c(NA)
+for (i in 2:30) {
+  L[i]<-0.3*myData$Sales[i]+0.7*L[i-1]
+  yfit[i]<-L[i-1]
+}
+L
+yfit
 
-#One method
-forecast0.3Fit <-ses(myData$Sales, alpha = 0.3)$fitted
-forecast0.3Fit
-L30<-0.3*myData$Sales[30]+0.7*forecast0.3Fit[30]
-L30
 
 #Another method
-ses(myData$Sales, alpha = 0.3)$mean
+# yfit<-ses(myData$Sales, alpha = 0.3)
+# View(yfit)
 
-length(myData$Sales)
-length(forecast0.3Fit)
-MSE2<-mean(sum((myData$Sales-forecast0.3Fit)^2))/29
-MSE2
-MAD2<-sum(abs(myData$Sales-forecast0.3Fit))/29
+eS<-myData$Sales-yfit
+myData<-cbind(myData,L,yfit,eS)
+
+MSES<-sum((myData$eS[2:30])^2)/29
+MADS<-sum(abs(myData$eS[2:30]))/29
+MAPES<-100*sum(abs((myData$eS[2:30])/myData$Sales[2:30]))/29
+
+print(MSES, digits=9)
+qMADS
+MAPES
+```
+
+```{r Q4}
+library(readxl)
+myData <- read_excel("C:/Users/mario/Downloads/Ch10_Q1_V16_Data_File.xlsx", sheet = "Exercise_10.1")
+View(myData)
+yAves<-c(NA,NA,NA)
+for (i in 1:12) {
+  yAves[i+3]<-sum(myData$yt[i:(i+2)])/3
+}
+
+
+yAves<-yAves[1:20]
+print(yAves)
+table<-data.frame(t=1:20, yhat=yAves)
+myData<-cbind(myData,yAves)
+e<-myData$yt-myData$yAves
+myData<-cbind(myData,e)
+
+MSE<-sum((myData$e[4:20])^2)/17
+MAD<-sum(abs(myData$e[4:20]))/17
+MAPE<-100*sum(abs((myData$e[4:20])/myData$yt[4:20]))/17
+
+MSE
+MAD
+MAPE
+
+sum(myData$yt[18:20])/3
+```
+
+```{r Q5}
+library(readxl)
+library(forecast)
+
+myData <- read_excel("C:/Users/mario/Downloads/Ch10_Q11_V14_Data_File.xlsx", sheet = "Inquiries")
+View(myData)
+
+tsData<-ts(myData$Inquiries,start=1,end=30, frequency=1)
+plot.ts(tsData, ylim=c(200, 350), xlim=c(5,20))
+
+tsLin<-tslm(tsData~trend)
+summary(tsLin)
+
+forecast(tsLin,h=2)
+```
+
+```{r Q7}
+library(readxl)
+myData <- read_excel("C:/Users/mario/Downloads/Ch10_Q5_V06_Data_File.xlsx", sheet = "Foodtruck")
+View(myData)
+
+sum(myData$Students[38:40])/3
+sum(myData$Students[36:40])/5
+
+yAve3<-c(NA,NA,NA)
+for (i in 1:37) {
+  yAve3[i+3]<-sum(myData$Students[i:(i+2)])/3
+}
+yAve3
+
+yAve5<-c(NA,NA,NA,NA,NA)
+for (i in 1:35) {
+  yAve5[i+5]<-sum(myData$Students[i:(i+4)])/5
+}
+yAve5
+
+e3<-myData$Students-yAve3
+e5<-myData$Students-yAve5
+
+myData<-cbind(myData,yAve3,yAve5,e3,e5)
+
+MSE3<-sum((myData$e3[4:40])^2)/37
+MAD3<-sum(abs(myData$e3[4:40]))/37
+MAPE3<-100*sum(abs((myData$e3[4:40])/myData$Students[4:40]))/37
+
+MSE3
+MAD3
+MAPE3
+
+MSE5<-sum((myData$e5[6:40])^2)/35
+MAD5<-sum(abs(myData$e5[6:40]))/35
+MAPE5<-100*sum(abs((myData$e5[6:40])/myData$Students[6:40]))/35
+
+MSE5
+MAD5
+MAPE5
+
 ```
 
 Add a new chunk by clicking the *Insert Chunk* button on the toolbar or by pressing *Ctrl+Alt+I*.
