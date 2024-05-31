@@ -71,7 +71,7 @@ MADS<-sum(abs(myData$eS[2:30]))/29
 MAPES<-100*sum(abs((myData$eS[2:30])/myData$Sales[2:30]))/29
 
 print(MSES, digits=9)
-qMADS
+MADS
 MAPES
 ```
 
