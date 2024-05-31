@@ -15,23 +15,29 @@ This is an R Markdown document. Markdown is a simple formatting syntax for autho
 
 When you click the **Knit** button a document will be generated that includes both content as well as the output of any embedded R code chunks within the document. You can embed an R code chunk like this:
 
-```{r cars}
+```{r Model 1}
 myData<-mtcars
 View(myData)
 structure(myData)
 
+### Model 1 and all its residual plots
 model1<-lm(mpg~disp,myData)
 summary(model1)
 #Plot with relationship
 plot(myData$disp,myData$mpg, xlab="disp",ylab="mpg")
 abline(model1,col="red")
-##Plot with residuals and fitted values, with histogram, and Q-Q
+#Plot with residuals and fitted values, with histogram, and Q-Q
 plot(model1)
 #Not nomrally distributed with histogram
 hist(model1$residuals, xlab="Residuals", main="Check normality with Histogram of residuals")
+```
 
+```{r Model 2}
+myData<-mtcars
+View(myData)
+structure(myData)
 
-
+### Model 2 and all its residual plots
 model2<-lm(mpg~log(disp),myData)
 summary(model2)
 #Plot and see visuals
@@ -43,9 +49,14 @@ matlines(x,y,lwd=2)
 plot(model2)
 #Not nomrally distributed with histogram, but better than 1st histogram
 hist(model2$residuals, xlab="Residuals", main="Check normality with Histogram of residuals")
+```
 
+```{r Model 3}
+myData<-mtcars
+View(myData)
+structure(myData)
 
-
+### Model 3 and all its residual plots
 model3<-lm(log(mpg)~log(disp),myData)
 summary(model3)
 #Plot to see relationship
@@ -57,16 +68,6 @@ matlines(x,y,lwd=2)
 plot(model3)
 #Much more normally distributed
 hist(model3$residuals, xlab="Residuals", main="Check normality with Histogram of residuals")
-
-
-```
-
-## Including Plots
-
-You can also embed plots, for example:
-
-```{r pressure, echo=FALSE}
-plot(pressure)
 ```
 
 Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
