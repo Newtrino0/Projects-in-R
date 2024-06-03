@@ -1,0 +1,59 @@
+---
+title: "ECON107 Final Project"
+author: "Mario Arce Acosta"
+date: "2024-06-03"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## R Markdown
+We are interested in testing what 
+
+```{r Loading data and viewing, echo=FALSE}
+library(readr)
+library(dplyr)
+listings <- read_csv("C:/Users/XCITE-admin/Documents/GitHub/Regular_R_Work/listings/listings_q1.csv")
+View(listings)
+listings_q2 <- read_csv("C:/Users/XCITE-admin/Documents/GitHub/Regular_R_Work/listings/listings_q2.csv")
+View(listings_q2)
+
+
+getmode <- function(v) {
+   uniqv <- unique(v)
+   uniqv[which.max(tabulate(match(v, uniqv)))]
+}
+
+getmode(listings$neighbourhood)
+
+#We find that there are 16 unique neighbourhoods in our data
+unique(listings$neighbourhood)
+neighbourhoods<- listings %>% 
+  count(neighbourhood)
+room_types<- listings %>% 
+  count(room_type)
+room_types
+neighbourhoods
+
+max(listings$price)
+min(listings$price)
+mean(listings$price)
+
+hist(listings$minimum_nights,breaks=10, xlim=c(0,30))
+pie( neighbourhoods$n,labels = neighbourhoods$neighbourhood, main="Pie Chart of Neighbourhoods")
+
+
+
+```
+
+## Including Plots
+
+You can also embed plots, for example:
+
+```{r pressure, echo=FALSE}
+plot(pressure)
+```
+
+Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
