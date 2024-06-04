@@ -13,7 +13,8 @@ library(readxl)
 library(ggplot2)
 library(forecast)
 
-#Path on XCITE laptop"C:\Users\XCITE-admin\Documents\GitHub\Regular_R_Work\H1B_data.xlsx"
+#USER XCITE: laptop"C:\Users\XCITE-admin\Documents\GitHub\Regular_R_Work\H1B_data.xlsx"
+#Users
 H1B_data <- read_excel("C:/Users/mario/Documents/GitHub/Regular_R_Work/H1B_data.xlsx", sheet = "Sheet 1")
 View(H1B_data)
 LPR_data <- read_excel("C:/Users/mario/Documents/GitHub/Regular_R_Work/LPR_1820-2022_data.xlsx", sheet = "LPR obtainments")
@@ -39,6 +40,8 @@ colnames(H1B_data)[11]<-"Continuing_Denial"
 H1B_data<-subset(H1B_data, Year <= 2022)
 
 H1B_numbers<-H1B_data[c(1,8,9,10,11)]
+colnames(H1B_numbers)[1] <- "Year"
+H1B_numbers <- cbind(H1B_numbers, H1B_numbers$Inital_Approval/(H1B_numbers$Inital_Approval+H1B_numbers$Inital_Denial))
 View(H1B_numbers)
 H1B_numbers<-aggregate(H1B_numbers[2:5],by=list(H1B_numbers$Year), FUN=sum)
 
