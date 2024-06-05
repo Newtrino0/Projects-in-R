@@ -10,13 +10,18 @@ output:
 
 ```{r Setup and upload data}
 library(readxl)
+library(readr)
 library(ggplot2)
 library(forecast)
 
 #USER XCITE: laptop"C:\Users\XCITE-admin\Documents\GitHub\Regular_R_Work\H1B_data.xlsx"
 #Users
-H1B_data <- read_excel("C:/Users/mario/Documents/GitHub/Regular_R_Work/H1B_data.xlsx", sheet = "Sheet 1")
-View(H1B_data)
+# H1B_data <- read_excel("C:/Users/mario/Documents/GitHub/Regular_R_Work/H1B_data.xlsx", sheet = "Sheet 1")
+# View(H1B_data)
+
+H1B_Data <- read_csv("C:/Users/mario/Documents/GitHub/Regular_R_Work/H1B_Data.csv")
+View(H1B_Data)
+
 LPR_data <- read_excel("C:/Users/mario/Documents/GitHub/Regular_R_Work/LPR_1820-2022_data.xlsx", sheet = "LPR obtainments")
 View(LPR_data)
 
@@ -31,23 +36,32 @@ View(removalsData)
 ##Work began at XCITE
 
 #Prepare H1B_data
-colnames(H1B_data)[1]<-"Year"
-colnames(H1B_data)[8]<-"Inital_Approval"
-colnames(H1B_data)[9]<-"Inital_Denial"
-colnames(H1B_data)[10]<-"Continuing_Approval"
-colnames(H1B_data)[11]<-"Continuing_Denial"
+colnames(H1B_Data)[1]<-"Year"
+colnames(H1B_Data)[8]<-"Inital_Approval"
+colnames(H1B_Data)[9]<-"Inital_Denial"
+colnames(H1B_Data)[10]<-"Continuing_Approval"
+colnames(H1B_Data)[11]<-"Continuing_Denial"
 
-H1B_data<-subset(H1B_data, Year <= 2022)
+H1B_Data<-subset(H1B_Data, Year <= 2022)
 
-H1B_numbers<-H1B_data[c(1,8,9,10,11)]
+H1B_numbers<-H1B_Data[c(1,8,9,10,11)]
 colnames(H1B_numbers)[1] <- "Year"
-H1B_numbers <- cbind(H1B_numbers, H1B_numbers$Inital_Approval/(H1B_numbers$Inital_Approval+H1B_numbers$Inital_Denial))
+H1B_numbers <- cbind(H1B_numbers, H1B_numbers$Inital_Approval/(H1B_numbers$Inital_Approval+H1B_numbers$Inital_Denial+H1B_numbers$Continuing_Approval+H1B_numbers$Continuing_Denial), H1B_numbers$Inital_Denial/(H1B_numbers$Inital_Approval+H1B_numbers$Inital_Denial+H1B_numbers$Continuing_Approval+H1B_numbers$Continuing_Denial), H1B_numbers$Continuing_Approval/(H1B_numbers$Inital_Approval+H1B_numbers$Inital_Denial+H1B_numbers$Continuing_Approval+H1B_numbers$Continuing_Denial), H1B_numbers$Continuing_Denial/(H1B_numbers$Inital_Approval+H1B_numbers$Inital_Denial+H1B_numbers$Continuing_Approval+H1B_numbers$Continuing_Denial))
+
 colnames(H1B_numbers)[6]<-"IAppovals ratio"
+colnames(H1B_numbers)[7]<-"IDenials ratio"
+colnames(H1B_numbers)[8]<-"CApproval ratio"
+colnames(H1B_numbers)[9]<-"CDenials ratio"
+H1B_numbers<-na.omit(H1B_numbers)
+
 View(H1B_numbers)
 
-H1B_numbers<-aggregate(H1B_numbers[2:5],by=list(H1B_numbers$Year), FUN=sum)
+H1B_agg<-aggregate(H1B_numbers[2:9],by=list(H1B_numbers$Year), FUN=sum)
+View(H1B_agg)
 
-tsH1B<-ts(H1B_numbers$Continuing_Approval, start=2013,end=2022)
+#H1B_numbers<-aggregate(H1B_numbers[2:5],by=list(H1B_numbers$Year), FUN=sum)
+
+tsH1B<-ts(aggregate(H1B_numbers[2:5],by=list(H1B_numbers$Year), FUN=sum)$Continuing_Approval, start=2009,end=2022)
 plot.ts(tsH1B)
 
 #Prepare LPR_data by renaming columns, subsetting, and changing data type
