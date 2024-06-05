@@ -13,6 +13,7 @@ library(readxl)
 library(readr)
 library(ggplot2)
 library(forecast)
+library(stargazer)
 
 #USER XCITE: laptop"C:\Users\XCITE-admin\Documents\GitHub\Regular_R_Work\H1B_data.xlsx"
 #USER mario:
@@ -40,17 +41,23 @@ colnames(H1B_Data)[10]<-"Continuing_Approval"
 colnames(H1B_Data)[11]<-"Continuing_Denial"
 
 H1B_Data<-subset(H1B_Data, Year <= 2022)
+H1B_Data <- cbind(H1B_Data, H1B_Data$Initial_Approval/(H1B_Data$Initial_Approval+H1B_Data$Initial_Denial+H1B_Data$Continuing_Approval+H1B_Data$Continuing_Denial), H1B_Data$Initial_Denial/(H1B_Data$Initial_Approval+H1B_Data$Initial_Denial+H1B_Data$Continuing_Approval+H1B_Data$Continuing_Denial), H1B_Data$Continuing_Approval/(H1B_Data$Initial_Approval+H1B_Data$Initial_Denial+H1B_Data$Continuing_Approval+H1B_Data$Continuing_Denial), H1B_Data$Continuing_Denial/(H1B_Data$Initial_Approval+H1B_Data$Initial_Denial+H1B_Data$Continuing_Approval+H1B_Data$Continuing_Denial), (H1B_Data$Initial_Approval+H1B_Data$Continuing_Approval)/(H1B_Data$Initial_Approval+H1B_Data$Initial_Denial+H1B_Data$Continuing_Approval+H1B_Data$Continuing_Denial), (H1B_Data$Initial_Denial+H1B_Data$Continuing_Denial)/(H1B_Data$Initial_Approval+H1B_Data$Initial_Denial+H1B_Data$Continuing_Approval+H1B_Data$Continuing_Denial))
 
-H1B_numbers<-H1B_Data[c(1,8,9,10,11)]
-colnames(H1B_numbers)[1] <- "Year"
-H1B_numbers <- cbind(H1B_numbers, H1B_numbers$Initial_Approval/(H1B_numbers$Initial_Approval+H1B_numbers$Initial_Denial+H1B_numbers$Continuing_Approval+H1B_numbers$Continuing_Denial), H1B_numbers$Initial_Denial/(H1B_numbers$Initial_Approval+H1B_numbers$Initial_Denial+H1B_numbers$Continuing_Approval+H1B_numbers$Continuing_Denial), H1B_numbers$Continuing_Approval/(H1B_numbers$Initial_Approval+H1B_numbers$Initial_Denial+H1B_numbers$Continuing_Approval+H1B_numbers$Continuing_Denial), H1B_numbers$Continuing_Denial/(H1B_numbers$Initial_Approval+H1B_numbers$Initial_Denial+H1B_numbers$Continuing_Approval+H1B_numbers$Continuing_Denial), (H1B_numbers$Initial_Approval+H1B_numbers$Continuing_Approval)/(H1B_numbers$Initial_Approval+H1B_numbers$Initial_Denial+H1B_numbers$Continuing_Approval+H1B_numbers$Continuing_Denial), (H1B_numbers$Initial_Denial+H1B_numbers$Continuing_Denial)/(H1B_numbers$Initial_Approval+H1B_numbers$Initial_Denial+H1B_numbers$Continuing_Approval+H1B_numbers$Continuing_Denial))
 
-colnames(H1B_numbers)[6]<-"IAppovals ratio"
-colnames(H1B_numbers)[7]<-"IDenials ratio"
-colnames(H1B_numbers)[8]<-"CApproval ratio"
-colnames(H1B_numbers)[9]<-"CDenials ratio"
-colnames(H1B_numbers)[10]<-"Approvals ratio"
-colnames(H1B_numbers)[11]<-"Denials ratio"
+H1B_Industry<-H1B_Data[!is.na(H1B_Data$`Industry (NAICS) Code`),]
+H1B_Industry$Professional <- with(H1B_Industry, ifelse(`Industry (NAICS) Code`> "54 - Professional, Scientific, and Technical Services", 1, 0))
+View(H1B_Industry)
+
+colnames(H1B_Data)[12]<-"IAppovals ratio"
+colnames(H1B_Data)[13]<-"IDenials ratio"
+colnames(H1B_Data)[14]<-"CApproval ratio"
+colnames(H1B_Data)[15]<-"CDenials ratio"
+colnames(H1B_Data)[16]<-"Approvals ratio"
+colnames(H1B_Data)[17]<-"Denials ratio"
+
+
+H1B_numbers<-H1B_Data[c(1,8,9,10,11,12,13,14,15,16,17)]
+
 H1B_numbers<-na.omit(H1B_numbers)
 
 View(H1B_numbers)
@@ -77,6 +84,10 @@ tsApproval_ratio<-ts(H1B_agg$`Approvals ratio`, start=2009,end=2022)
 # plot.ts(tsIDenials)
 # plot.ts(tsCApprovals)
 # plot.ts(tsCDenials)
+
+```
+
+```{r EDA H-1B}
 plot.ts(tsApprovals)
 plot.ts(tsDenials)
 plot.ts(tsApplications)
@@ -85,10 +96,15 @@ plot.ts(tsApproval_ratio)
 tsApprovals_model<-tslm(tsApprovals~trend)
 tsApplications_model<-tslm(tsApplications~trend)
 tsRatio_model<-tslm(tsApproval_ratio~trend)
+
+Ratio_model<-lm(`Approvals ratio`~Professional, H1B_Industry)
+
+stargazer(Ratio_model,covariate.labels=c("Professional"), type="text",  out="models1.text")
 summary(tsApprovals_model)
 summary(tsApplications_model)
 summary(tsRatio_model)
 
+hist(H1B_Industry$Professional)
 ```
 
 ```{r Clean & Prepare}
