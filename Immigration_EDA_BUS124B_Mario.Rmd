@@ -104,7 +104,7 @@ summary(tsApprovals_model)
 summary(tsApplications_model)
 summary(tsRatio_model)
 
-hist(H1B_Industry$Professional)
+hist(H1B_Industry$Professional, breaks=2)
 ```
 
 ```{r Clean & Prepare}
