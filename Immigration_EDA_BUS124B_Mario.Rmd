@@ -42,7 +42,7 @@ H1B_data<-subset(H1B_data, Year <= 2022)
 H1B_numbers<-H1B_data[c(1,8,9,10,11)]
 colnames(H1B_numbers)[1] <- "Year"
 H1B_numbers <- cbind(H1B_numbers, H1B_numbers$Inital_Approval/(H1B_numbers$Inital_Approval+H1B_numbers$Inital_Denial))
-colnames(H1B_numbers)[]
+colnames(H1B_numbers)[6]<-"IAppovals ratio"
 View(H1B_numbers)
 
 H1B_numbers<-aggregate(H1B_numbers[2:5],by=list(H1B_numbers$Year), FUN=sum)
