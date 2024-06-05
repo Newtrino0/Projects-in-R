@@ -61,21 +61,33 @@ H1B_agg[6:11]<-mean_ratios[2:7]
 colnames(H1B_agg)[1]<-"Year"
 View(H1B_agg)
 
-tsIApprovals<-ts(H1B_agg$Initial_Approval, start=2009,end=2022)
-tsIDenials<-ts(H1B_agg$Initial_Denial, start=2009,end=2022)
-tsCApprovals<-ts(H1B_agg$Continuing_Approval, start=2009,end=2022)
-tsCDenials<-ts(H1B_agg$Continuing_Denial, start=2009,end=2022)
+min((H1B_agg$Initial_Approval + H1B_agg$Continuing_Approval + H1B_agg$Initial_Denial + H1B_agg$Continuing_Denial))
+
+# tsIApprovals<-ts(H1B_agg$Initial_Approval, start=2009,end=2022)
+# tsIDenials<-ts(H1B_agg$Initial_Denial, start=2009,end=2022)
+# tsCApprovals<-ts(H1B_agg$Continuing_Approval, start=2009,end=2022)
+# tsCDenials<-ts(H1B_agg$Continuing_Denial, start=2009,end=2022)
 tsApprovals<-ts(H1B_agg$Initial_Approval + H1B_agg$Continuing_Approval, start=2009,end=2022)
 tsDenials<-ts(H1B_agg$Initial_Denial + H1B_agg$Continuing_Denial, start=2009,end=2022)
+tsApplications<-ts(H1B_agg$Initial_Approval + H1B_agg$Continuing_Approval + H1B_agg$Initial_Denial + H1B_agg$Continuing_Denial, start=2009,end=2022)
 
-plot.ts(tsIApprovals)
-plot.ts(tsIDenials)
-plot.ts(tsCApprovals)
-plot.ts(tsCDenials)
+tsApproval_ratio<-ts(H1B_agg$`Approvals ratio`, start=2009,end=2022)
+
+# plot.ts(tsIApprovals)
+# plot.ts(tsIDenials)
+# plot.ts(tsCApprovals)
+# plot.ts(tsCDenials)
 plot.ts(tsApprovals)
 plot.ts(tsDenials)
+plot.ts(tsApplications)
+plot.ts(tsApproval_ratio)
 
-
+tsApprovals_model<-tslm(tsApprovals~trend)
+tsApplications_model<-tslm(tsApplications~trend)
+tsRatio_model<-tslm(tsApproval_ratio~trend)
+summary(tsApprovals_model)
+summary(tsApplications_model)
+summary(tsRatio_model)
 
 ```
 
