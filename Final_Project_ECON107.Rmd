@@ -2,7 +2,9 @@
 title: "ECON107 Final Project"
 author: "Mario Arce Acosta"
 date: "2024-06-03"
-output: html_document
+output:
+  word_document: default
+  html_document: default
 ---
 
 ```{r setup, include=FALSE}
@@ -10,50 +12,57 @@ knitr::opts_chunk$set(echo = TRUE)
 ```
 
 ## R Markdown
-We are interested in testing what 
 
-```{r Loading data and viewing, echo=FALSE}
+```{r Data Section}
 library(readr)
 library(dplyr)
-listings <- read_csv("C:/Users/XCITE-admin/Documents/GitHub/Regular_R_Work/listings/listings_q1.csv")
+listings <- read_csv("C:/Users/mario/Documents/GitHub/Regular_R_Work/listings/listings_q1.csv")
 View(listings)
-listings_q2 <- read_csv("C:/Users/XCITE-admin/Documents/GitHub/Regular_R_Work/listings/listings_q2.csv")
-View(listings_q2)
+summary(listings)
 
+listings<-filter(listings,price!=0)
+listings<-filter(listings,availability_365!=0)
+listings<-filter(listings,calculated_host_listings_count!=0)
+listings<-listings[c(-1,-2,-3,-4,-5,-6,-7,-8,-13)]
+```
 
-getmode <- function(v) {
-   uniqv <- unique(v)
-   uniqv[which.max(tabulate(match(v, uniqv)))]
-}
+```{r Descriptive Statistics Table}
+library(kableExtra)
+listings %>%
+  summary() %>%
+  kable() %>%
+  kable_styling(bootstrap_options = c("striped", "hover"))
 
-getmode(listings$neighbourhood)
+listings<-listings[-9]
+```
 
-#We find that there are 16 unique neighbourhoods in our data
-unique(listings$neighbourhood)
-neighbourhoods<- listings %>% 
-  count(neighbourhood)
-room_types<- listings %>% 
-  count(room_type)
-room_types
-neighbourhoods
+```{r Model Specification}
+price_relation<-log(price)~log(minimum_nights)+log(availability_365)+log(calculated_host_listings_count)
+```
 
-max(listings$price)
-min(listings$price)
-mean(listings$price)
-
-hist(listings$minimum_nights,breaks=10, xlim=c(0,30))
-pie( neighbourhoods$n,labels = neighbourhoods$neighbourhood, main="Pie Chart of Neighbourhoods")
-
-
+```{r Empirical Results}
+price_model<-lm(price_relation, listings)
+summary(price_model)
 
 ```
 
-## Including Plots
+```{r Presentation of Regression Results}
+library(stargazer)
 
-You can also embed plots, for example:
-
-```{r pressure, echo=FALSE}
-plot(pressure)
+stargazer(price_model, type="text",out="models1.text")
 ```
 
-Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
+```{r Discussions of assumptions}
+library(lmtest)
+
+par(mfrow=c(1,1))
+plot(price_model)
+
+dwtest(price_model)
+
+```
+
+```{r }
+sessionInfo()
+
+```
