@@ -4,17 +4,29 @@
                     ---------------------------
                          `Approvals ratio`     
 -----------------------------------------------
-Professional                 -0.003***         
-                              (0.001)          
+Professional                  -0.006           
+                              (0.004)          
                                                
-Constant                     0.914***          
-                             (0.0003)          
+Health                       -0.054***         
+                              (0.006)          
+                                               
+Finance                      -0.019***         
+                              (0.003)          
+                                               
+Manufacturing                -0.019***         
+                              (0.004)          
+                                               
+Education                    0.014***          
+                              (0.005)          
+                                               
+Construction                 0.963***          
+                              (0.003)          
                                                
 -----------------------------------------------
-Observations                  726,898          
-R2                            0.00002          
-Adjusted R2                   0.00002          
-Residual Std. Error     0.256 (df = 726896)    
-F Statistic         13.691*** (df = 1; 726896) 
+Observations                  46,184           
+R2                             0.006           
+Adjusted R2                    0.006           
+Residual Std. Error     0.227 (df = 46178)     
+F Statistic          56.933*** (df = 5; 46178) 
 ===============================================
 Note:               *p<0.1; **p<0.05; ***p<0.01

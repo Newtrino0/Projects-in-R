@@ -1,0 +1,160 @@
+---
+title: "Winning the Lottery (Powerpoint)"
+author: "Mario Arce Acosta"
+date: "2024-06-14"
+output: powerpoint_presentation
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE)
+```
+
+## R Markdown
+
+This is an R Markdown presentation. Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word documents. For more details on using R Markdown see <http://rmarkdown.rstudio.com>.
+
+When you click the **Knit** button a document will be generated that includes both content as well as the output of any embedded R code chunks within the document.
+
+## Slide with Bullets
+
+- Bullet 1
+- Bullet 2
+- Bullet 3
+
+
+```{r H-1B_Data}
+library(readxl)
+library(readr)
+library(ggplot2)
+library(forecast)
+library(stargazer)
+library(kableExtra)
+
+#USER XCITE: laptop"C:\Users\XCITE-admin\Documents\GitHub\Regular_R_Work\H1B_data.xlsx"
+#USER mario:
+H1B_Data <- read_csv("C:/Users/mario/Documents/GitHub/Regular_R_Work/H1B_Data.csv")
+View(H1B_Data)
+
+LPR_data <- read_excel("C:/Users/mario/Documents/GitHub/Regular_R_Work/LPR_1820-2022_data.xlsx", sheet = "LPR obtainments")
+View(LPR_data)
+
+# fearData<- read_excel("C:/Users/mario/Desktop/Datasets/Migration_Fear_EPU_Data.xlsx", sheet = "Sheet1")
+# View(fearData)
+
+# removalsData <- read_excel("C:/Users/mario/Desktop/Datasets/Alien_removal_returns_fy2019_data.xlsx", sheet = "(R) Aliens removed or returned")
+# View(removalsData)
+```
+
+```{r  H1B_Data Clean & Prepare}
+##Work began at XCITE
+
+#Name Columns
+colnames(H1B_Data)[1]<-"Year"
+colnames(H1B_Data)[8]<-"Initial_Approval"
+colnames(H1B_Data)[9]<-"Initial_Denial"
+colnames(H1B_Data)[10]<-"Continuing_Approval"
+colnames(H1B_Data)[11]<-"Continuing_Denial"
+
+#Limit to 2022
+H1B_Data<-subset(H1B_Data, Year <= 2022)
+#Create Approval ratio columns
+H1B_Data <- cbind(H1B_Data, H1B_Data$Initial_Approval/(H1B_Data$Initial_Approval+H1B_Data$Initial_Denial+H1B_Data$Continuing_Approval+H1B_Data$Continuing_Denial),  H1B_Data$Continuing_Approval/(H1B_Data$Initial_Approval+H1B_Data$Initial_Denial+H1B_Data$Continuing_Approval+H1B_Data$Continuing_Denial),  (H1B_Data$Initial_Approval+H1B_Data$Continuing_Approval)/(H1B_Data$Initial_Approval+H1B_Data$Initial_Denial+H1B_Data$Continuing_Approval+H1B_Data$Continuing_Denial))
+#Rename columns accordingly
+colnames(H1B_Data)[12]<-"IAppovals ratio"
+colnames(H1B_Data)[13]<-"CApproval ratio"
+colnames(H1B_Data)[14]<-"Approvals ratio"
+
+#Create new dataset with industry
+H1B_Industry<-H1B_Data[!is.na(H1B_Data$`Industry (NAICS) Code`),]
+H1B_Industry$Professional <- with(H1B_Industry, ifelse(`Industry (NAICS) Code`> "54 - Professional, Scientific, and Technical Services", 1, 0))
+industry_table<-table(H1B_Industry$`Industry (NAICS) Code`)
+pie(industry_table)
+
+H1B_numbers<-H1B_Data[c(1,8,9,10,11,12,13,14)]
+H1B_numbers<-na.omit(H1B_numbers)
+
+mean_ratios<-aggregate(H1B_numbers[6:8],by=list(H1B_numbers$Year), FUN=mean)
+H1B_agg<-aggregate(H1B_numbers[2:8],by=list(H1B_numbers$Year), FUN=sum)
+
+H1B_agg[6:8]<-mean_ratios[2:4]
+colnames(H1B_agg)[1]<-"Year"
+
+tsApprovals<-ts(H1B_agg$Initial_Approval + H1B_agg$Continuing_Approval, start=2009,end=2022)
+tsDenials<-ts(H1B_agg$Initial_Denial + H1B_agg$Continuing_Denial, start=2009,end=2022)
+tsApplications<-ts(H1B_agg$Initial_Approval + H1B_agg$Continuing_Approval + H1B_agg$Initial_Denial + H1B_agg$Continuing_Denial, start=2009,end=2022)
+tsApproval_ratio<-ts(H1B_agg$`Approvals ratio`, start=2009,end=2022)
+```
+## Slide with R Output
+
+```{r cars, echo = TRUE}
+summary(cars)
+```
+
+## Slide with Plot
+
+
+## Slide with R Output
+```{r Viewing Data}
+View(H1B_Industry)
+View(H1B_numbers)
+View(H1B_agg)
+summary(H1B_agg)
+H1B_agg %>%
+  summary() %>%
+  kable() %>%
+  kable_styling(bootstrap_options = c("striped", "hover"))
+```
+## Slide with Plot
+```{r EDA H-1B}
+par(mfrow=c(1,1))
+
+plot.ts(tsApprovals)
+plot.ts(tsDenials)
+plot.ts(tsApplications)
+plot.ts(tsApproval_ratio)
+```
+
+```{r Create Models}
+tsApprovals_model<-tslm(tsApprovals~trend)
+tsApplications_model<-tslm(tsApplications~trend)
+tsRatio_model<-tslm(tsApproval_ratio~trend)
+
+Ratio_model<-lm(`Approvals ratio`~Professional, H1B_Industry)
+
+stargazer(Ratio_model,covariate.labels=c("Professional"), type="text",  out="models1.text")
+summary(tsApprovals_model)
+summary(tsApplications_model)
+summary(tsRatio_model)
+
+hist(H1B_Industry$Professional, breaks=2)
+
+```
+
+```{r Clean & Prepare LPR}
+#Prepare LPR_data by renaming columns, subsetting, and changing data type
+colnames(LPR_data)[2]<-"#_of_LPR_obtained"
+
+tsLPR<-ts(LPR_data$`#_of_LPR_obtained`,start=2013,end=2022, frequency=1)
+plot.ts(tsLPR)
+
+LPR_tsmodel1<-tslm(tsLPR~trend)
+summary(LPR_tsmodel1)
+
+LPR_tsmodel2<-tslm(log(tsLPR)~trend)
+summary(LPR_tsmodel2)
+
+# forecast1<-forecast(LPR_tsmodel1, h=10)
+# forecast2<-forecast(LPR_tsmodel2, h=10)
+# View(forecast1)
+# View(forecast2)
+# 
+# exp(forecast2$mean+se^2/2)
+
+ses(LPR_data$`#_of_LPR_obtained`, alpha = 0.3)$fitted
+
+fittedLPR1<-fitted(LPR_tsmodel1)
+accuracy(fitted(LPR_tsmodel1),LPR_data$`#_of_LPR_obtained`[1:10])
+se<-sigma(LPR_tsmodel2)
+accuracy(fitted(LPR_tsmodel2)+se^2,LPR_data$`#_of_LPR_obtained`[1:10])
+```
+

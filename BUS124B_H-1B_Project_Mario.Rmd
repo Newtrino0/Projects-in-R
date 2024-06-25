@@ -1,0 +1,149 @@
+---
+title: "Winning the Lottery (BUS124B)"
+author: "Mario Arce Acosta"
+date: "2024-06-14"
+output:
+    slidy_presentation:
+      theme: united
+      highlight: tango
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE)
+```
+
+## Research Questions
+
+- (Primary) Are certain industries associated with higher H-1B visa petition approval ratios? 
+- (Relevance) How can the findings influence nonprofits for immigration, like the California Immigrant Policy Center, in their decision-making?
+- (Secondary) What are some trends in immigration regarding H-1B visas?
+
+---
+
+## Data Methodology
+
+- I exported two datasets from the US Citizenship and Immigration Services (USCIS); one from their H-1B Data Hub webpage, the other dataset is yearbook of people who obtained Lawful Permanent Residency (LPR) status
+- H-1B Data: I exported data from the USCIS H-1B Employer Data Hub by splitting exports into sections of a few years since the final dataset would include over 900,000 observations, but reduced to a little over 200,000 after looking at the variance of the data
+- I simply changed some values to numeric ones in Excel, as well as copying and pasting the values across years since large exports were not supported
+
+
+
+
+
+
+```{r H-1B_Data, echo=FALSE}
+library(readxl)
+library(readr)
+library(ggplot2)
+library(forecast)
+library(stargazer)
+library(kableExtra)
+
+#USER XCITE: laptop"C:\Users\XCITE-admin\Documents\GitHub\Regular_R_Work\H1B_Data.xlsx"
+#USER mario
+H1B_Data <- read_csv("C:/Users/mario/Documents/GitHub/Regular_R_Work/H1B_Data.csv")
+View(H1B_Data)
+
+#LPR_data <- read_excel("C:/Users/mario/Documents/GitHub/Regular_R_Work/LPR_1820-2022_data.xlsx", sheet = "LPR obtainments")
+#View(LPR_data)
+
+# fearData<- read_excel("C:/Users/mario/Desktop/Datasets/Migration_Fear_EPU_Data.xlsx", sheet = "Sheet1")
+# View(fearData)
+
+# removalsData <- read_excel("C:/Users/mario/Desktop/Datasets/Alien_removal_returns_fy2019_data.xlsx", sheet = "(R) Aliens removed or returned")
+# View(removalsData)
+```
+
+```{r  H1B_Data Clean & Prepare, echo=FALSE}
+##Work began at XCITE
+
+#Name Columns
+colnames(H1B_Data)[1]<-"Year"
+colnames(H1B_Data)[8]<-"Initial_Approval"
+colnames(H1B_Data)[9]<-"Initial_Denial"
+colnames(H1B_Data)[10]<-"Continuing_Approval"
+colnames(H1B_Data)[11]<-"Continuing_Denial"
+
+#Create Approval ratio columns
+H1B_Data <- cbind(H1B_Data, H1B_Data$Initial_Approval/(H1B_Data$Initial_Approval+H1B_Data$Initial_Denial+H1B_Data$Continuing_Approval+H1B_Data$Continuing_Denial),  H1B_Data$Continuing_Approval/(H1B_Data$Initial_Approval+H1B_Data$Initial_Denial+H1B_Data$Continuing_Approval+H1B_Data$Continuing_Denial),  (H1B_Data$Initial_Approval+H1B_Data$Continuing_Approval)/(H1B_Data$Initial_Approval+H1B_Data$Initial_Denial+H1B_Data$Continuing_Approval+H1B_Data$Continuing_Denial))
+#Rename columns accordingly
+colnames(H1B_Data)[12]<-"IAppovals ratio"
+colnames(H1B_Data)[13]<-"CApproval ratio"
+colnames(H1B_Data)[14]<-"Approvals ratio"
+
+#Create new dataset with industry
+H1B_Industry<-H1B_Data[!is.na(H1B_Data$`Industry (NAICS) Code`),]
+H1B_Industry<-subset(H1B_Industry, Year==2015)
+H1B_Industry<-H1B_Industry[!is.na(H1B_Industry$Continuing_Denial),]
+H1B_Industry<-H1B_Industry[!is.na(H1B_Industry$`Tax ID`),]
+H1B_Industry<-H1B_Industry[c(-2,-3,-5,-6,-7)]
+H1B_Industry$Professional <- with(H1B_Industry, ifelse(`Industry (NAICS) Code`> "54 - Professional, Scientific, and Technical Services", 1, 0))
+H1B_Industry$Health <- with(H1B_Industry, ifelse(`Industry (NAICS) Code`> "62 - Health Care and Social Assitance", 1, 0))
+H1B_Industry$Finance <- with(H1B_Industry, ifelse(`Industry (NAICS) Code`> "52 - Finance and Insurance", 1, 0))
+H1B_Industry$Construction <- with(H1B_Industry, ifelse(`Industry (NAICS) Code`> "23 - Construction", 1, 0))
+H1B_Industry$Education <- with(H1B_Industry, ifelse(`Industry (NAICS) Code`> "61 - Educational Services", 1, 0))
+H1B_Industry$Manufacturing <- with(H1B_Industry, ifelse(`Industry (NAICS) Code`> "31-33 - Manufacturing", 1, 0))
+View(H1B_Industry)
+industry_table<-table(H1B_Industry$`Industry (NAICS) Code`)
+pie(industry_table)
+
+H1B_numbers<-H1B_Data[c(1,8,9,10,11,12,13,14)]
+H1B_numbers<-na.omit(H1B_numbers)
+
+mean_ratios<-aggregate(H1B_numbers[6:8],by=list(H1B_numbers$Year), FUN=mean)
+H1B_agg<-aggregate(H1B_numbers[2:8],by=list(H1B_numbers$Year), FUN=sum)
+
+H1B_agg[6:8]<-mean_ratios[2:4]
+colnames(H1B_agg)[1]<-"Year"
+
+tsApprovals<-ts(H1B_agg$Initial_Approval + H1B_agg$Continuing_Approval, start=2009,end=2024)
+tsDenials<-ts(H1B_agg$Initial_Denial + H1B_agg$Continuing_Denial, start=2009,end=2024)
+tsApplications<-ts(H1B_agg$Initial_Approval + H1B_agg$Continuing_Approval + H1B_agg$Initial_Denial + H1B_agg$Continuing_Denial, start=2009,end=2024)
+tsApproval_ratio<-ts(H1B_agg$`Approvals ratio`, start=2009,end=2024)
+```
+
+## H-1B (aggregated by year) Summary Table
+```{r Viewing H-1B by year, aggregated}
+H1B_agg %>%
+  summary() %>%
+  kable() %>%
+  kable_styling(bootstrap_options = c("striped", "hover"))
+```
+
+## H-1B (Panel Data) Summary Table
+```{r Viewing H-1B by Industry }
+H1B_Industry %>%
+  summary() %>%
+  kable() %>%
+  kable_styling(bootstrap_options = c("striped", "hover"))
+```
+
+## Time Series Plots of H-1B petitions (2009-2024)
+```{r EDA H-1B}
+par(mfrow=c(2,2))
+
+plot.ts(tsApprovals, xlab="Year", ylab="# of Approvals")
+plot.ts(tsDenials, xlab="Year", ylab="# of Denials")
+plot.ts(tsApplications, xlab="Year", ylab="# of Petitions/Applications")
+plot.ts(tsApproval_ratio, xlab="Year", ylab="Approval Ratio")
+```
+
+## Model Creation and Residual Plots for H-1B data
+```{r Create Models, echo=TRUE}
+Professional_model<-lm(`Approvals ratio`~ Professional + Health + Finance + Manufacturing + Education, H1B_Industry)
+```
+
+## Model summary statistics
+
+```{r H-1B model}
+stargazer(Professional_model,covariate.labels=c("Professional", "Health", "Finance", "Manufacturing", "Education", "Construction"), type="text",  out="models1.text")
+
+```
+## Conclusions
+
+- With such a low adjusted R squared value, we cannot conclude anything except that the variables we chose do not adequately explain all the variance for approval ratio for H-1B visa petitions.
+- Some future work that could be done is expanding the model to account for variance across years
+
+## Data source link
+- https://www.uscis.gov/tools/reports-and-studies/h-1b-employer-data-hub
+
