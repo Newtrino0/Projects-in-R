@@ -3,15 +3,12 @@ title: "ECON107 Final Project"
 author: "Mario Arce Acosta"
 date: "2024-06-03"
 output:
-  word_document: default
   html_document: default
+  word_document: default
 ---
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
-install.packages(kableExtra)
-install.packages(lmtest)
-install.packages(stargazer)
 ```
 
 ## R Markdown
@@ -19,13 +16,17 @@ install.packages(stargazer)
 ```{r Data Section}
 library(readr)
 library(dplyr)
-listings <- read_csv("C:/Users/mario/Documents/GitHub/Regular_R_Work/listings/listings_q1.csv")
+listings <- read_csv("C:/Users/mario/Documents/GitHub/Projects-in-R/Mexico_Airbnb_ECON107_Project/Airbnb prices data/listings_q1.csv")
+
 View(listings)
 summary(listings)
 
+# Filter out listings with zero price, availability, or hosts with zero listings
 listings<-filter(listings,price!=0)
 listings<-filter(listings,availability_365!=0)
 listings<-filter(listings,calculated_host_listings_count!=0)
+
+# Keep only the variables we are interested in building an econometrics model out of
 listings<-listings[c(-1,-2,-3,-4,-5,-6,-7,-8,-13)]
 ```
 
@@ -41,11 +42,17 @@ listings<-listings[-9]
 
 ```{r Model Specification}
 price_relation<-log(price)~log(minimum_nights)+log(availability_365)+log(calculated_host_listings_count)
+
+price_all<-log(price)~log(minimum_nights)+log(availability_365)+log(calculated_host_listings_count)+room_type+number_of_reviews
+
 ```
 
 ```{r Empirical Results}
 price_model<-lm(price_relation, listings)
 summary(price_model)
+
+all_model<-lm(price_all, listings)
+summary(all_model)
 
 ```
 
@@ -53,6 +60,7 @@ summary(price_model)
 library(stargazer)
 
 stargazer(price_model, type="text",out="models1.text")
+stargazer(all_model, type="text",out="models1.text")
 ```
 
 ```{r Discussions of assumptions}
@@ -62,6 +70,11 @@ par(mfrow=c(1,1))
 plot(price_model)
 
 dwtest(price_model)
+
+
+plot(all_model)
+
+dwtest(all_model)
 
 ```
 
