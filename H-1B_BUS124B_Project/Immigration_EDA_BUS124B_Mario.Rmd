@@ -18,10 +18,10 @@ library(kableExtra)
 
 #USER XCITE: laptop"C:\Users\XCITE-admin\Documents\GitHub\Regular_R_Work\H1B_data.xlsx"
 #USER mario:
-H1B_Data <- read_csv("C:/Users/mario/Documents/GitHub/Regular_R_Work/H1B_Data.csv")
+H1B_Data <- read_csv("C:/Users/mario/Documents/GitHub/Projects-in-R/H-1B_BUS124B_Project/H1B_Data.csv")
 View(H1B_Data)
 
-LPR_data <- read_excel("C:/Users/mario/Documents/GitHub/Regular_R_Work/LPR_1820-2022_data.xlsx", sheet = "LPR obtainments")
+LPR_data <- read_excel("C:/Users/mario/Documents/GitHub/Projects-in-R/H-1B_BUS124B_Project/LPR_1820-2022_data.xlsx", sheet = "LPR obtainments")
 View(LPR_data)
 
 # fearData<- read_excel("C:/Users/mario/Desktop/Datasets/Migration_Fear_EPU_Data.xlsx", sheet = "Sheet1")
@@ -78,10 +78,6 @@ tsDenials<-ts(H1B_agg$Initial_Denial + H1B_agg$Continuing_Denial, start=2009,end
 tsApplications<-ts(H1B_agg$Initial_Approval + H1B_agg$Continuing_Approval + H1B_agg$Initial_Denial + H1B_agg$Continuing_Denial, start=2009,end=2022)
 tsApproval_ratio<-ts(H1B_agg$`Approvals ratio`, start=2009,end=2022)
 
-# plot.ts(tsIApprovals)
-# plot.ts(tsIDenials)
-# plot.ts(tsCApprovals)
-# plot.ts(tsCDenials)
 
 ```
 
